@@ -1,7 +1,7 @@
 * text=auto
 
 *.nif binary
-*.dds binary
+*.dds filter=lfs diff=lfs merge=lfs -text
 *.hkx binary
 *.wav filter=lfs diff=lfs merge=lfs -text
 *.blend filter=lfs diff=lfs merge=lfs -text
