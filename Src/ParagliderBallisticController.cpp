@@ -126,12 +126,29 @@ namespace ParagliderVR
         _logTimer = 0.0f;
         _landingRecoveryPending = false;
         _landingRecoveryTime = 0.0f;
+        _verticalImpulseTotal = 0.0f;
+        _verticalImpulseDuration = 0.0f;
+        _verticalImpulseElapsed = 0.0f;
         _inFlight = true;
         logger::info(
             "Paraglider ballistic flight began gravityOwner={} fallStartHeight={:.1f}",
             _externalGravityOwner ? "external" : "paraglider",
             controller->fallStartHeight);
         return true;
+    }
+
+    void ParagliderBallisticController::QueueVerticalImpulse(
+        float a_velocity,
+        float a_duration)
+    {
+        if (!_inFlight ||
+            !std::isfinite(a_velocity) || a_velocity <= 0.0f ||
+            !std::isfinite(a_duration) || a_duration <= 0.0f) {
+            return;
+        }
+        _verticalImpulseTotal = std::clamp(a_velocity, 0.0f, 10000.0f);
+        _verticalImpulseDuration = a_duration;
+        _verticalImpulseElapsed = 0.0f;
     }
 
     void ParagliderBallisticController::Update(
@@ -232,6 +249,33 @@ namespace ParagliderVR
             velocity.quad.m128_f32[0] += contribution.x * worldScale;
             velocity.quad.m128_f32[1] += contribution.y * worldScale;
             velocity.quad.m128_f32[2] += contribution.z * worldScale;
+        }
+        if (_verticalImpulseTotal > 0.0f &&
+            _verticalImpulseDuration > 0.0f &&
+            _verticalImpulseElapsed < _verticalImpulseDuration) {
+            const float previousProgress = std::clamp(
+                _verticalImpulseElapsed / _verticalImpulseDuration,
+                0.0f,
+                1.0f);
+            _verticalImpulseElapsed = (std::min)(
+                _verticalImpulseElapsed + a_deltaTime,
+                _verticalImpulseDuration);
+            const float currentProgress = std::clamp(
+                _verticalImpulseElapsed / _verticalImpulseDuration,
+                0.0f,
+                1.0f);
+            const auto easeOutQuadratic = [](float a_progress) {
+                const float remaining = 1.0f - a_progress;
+                return 1.0f - (remaining * remaining);
+            };
+            const float appliedImpulse = _verticalImpulseTotal *
+                (easeOutQuadratic(currentProgress) - easeOutQuadratic(previousProgress));
+            velocity.quad.m128_f32[2] += appliedImpulse * worldScale;
+            if (_verticalImpulseElapsed >= _verticalImpulseDuration) {
+                _verticalImpulseTotal = 0.0f;
+                _verticalImpulseDuration = 0.0f;
+                _verticalImpulseElapsed = 0.0f;
+            }
         }
 
         g_applyingVelocityUpdate = true;
@@ -358,6 +402,9 @@ namespace ParagliderVR
         _inFlight = false;
         _externalGravityOwner = false;
         _gravity = 0.0f;
+        _verticalImpulseTotal = 0.0f;
+        _verticalImpulseDuration = 0.0f;
+        _verticalImpulseElapsed = 0.0f;
         _flightTime = 0.0f;
         _logTimer = 0.0f;
     }

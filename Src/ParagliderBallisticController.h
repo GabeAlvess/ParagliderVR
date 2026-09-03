@@ -10,6 +10,7 @@ namespace ParagliderVR
         static ParagliderBallisticController& GetSingleton();
 
         bool BeginGlideFlight();
+        void QueueVerticalImpulse(float a_velocity, float a_duration);
         void Update(float a_deltaTime, const FlightCommand& a_flightCommand);
         void Abort();
         [[nodiscard]] bool IsInFlight() const noexcept;
@@ -27,5 +28,8 @@ namespace ParagliderVR
         float _flightTime = 0.0f;
         float _logTimer = 0.0f;
         float _landingRecoveryTime = 0.0f;
+        float _verticalImpulseTotal = 0.0f;
+        float _verticalImpulseDuration = 0.0f;
+        float _verticalImpulseElapsed = 0.0f;
     };
 }

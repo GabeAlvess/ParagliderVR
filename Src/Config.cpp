@@ -118,9 +118,20 @@ namespace ParagliderVR
         loaded.verticalTransitionAcceleration = ParseFloat(Find(values, "flight.fverticaltransitionacceleration"), loaded.verticalTransitionAcceleration, 1.0f, 2000.0f);
         loaded.thumbstickDeadzone = ParseFloat(Find(values, "flight.fthumbstickdeadzone"), loaded.thumbstickDeadzone, 0.0f, 0.95f);
         loaded.lateralSpeedScale = ParseFloat(Find(values, "flight.flateralspeedscale"), loaded.lateralSpeedScale, 0.0f, 2.0f);
+        loaded.gestureControlEnabled = ParseBool(Find(values, "gesturecontrol.benabled"), loaded.gestureControlEnabled);
+        loaded.gesturePositionTolerance = ParseFloat(Find(values, "gesturecontrol.fpositiontolerance"), loaded.gesturePositionTolerance, 1.0f, 100.0f);
+        loaded.gestureRotationToleranceDegrees = ParseFloat(Find(values, "gesturecontrol.frotationtolerancedegrees"), loaded.gestureRotationToleranceDegrees, 1.0f, 180.0f);
+        loaded.gestureMinimumConfidence = ParseFloat(Find(values, "gesturecontrol.fminimumconfidence"), loaded.gestureMinimumConfidence, 0.0f, 0.95f);
+        loaded.gestureTransitionSpeed = ParseFloat(Find(values, "gesturecontrol.ftransitionspeed"), loaded.gestureTransitionSpeed, 0.1f, 30.0f);
         loaded.staminaPerSecond = ParseFloat(Find(values, "stamina.fstaminapersecond"), loaded.staminaPerSecond, 0.0f, 1000.0f);
         loaded.exhaustedHorizontalSpeedScale = ParseFloat(Find(values, "stamina.fexhaustedhorizontalspeedscale"), loaded.exhaustedHorizontalSpeedScale, 0.0f, 1.0f);
         loaded.exhaustedFallMultiplier = ParseFloat(Find(values, "stamina.fexhaustedfallmultiplier"), loaded.exhaustedFallMultiplier, loaded.dualMaximumFallMultiplier, 2.0f);
+        loaded.fireLiftEnabled = ParseBool(Find(values, "firelift.benabled"), loaded.fireLiftEnabled);
+        loaded.fireLiftHorizontalRadius = ParseFloat(Find(values, "firelift.fhorizontalradius"), loaded.fireLiftHorizontalRadius, 10.0f, 1000.0f);
+        loaded.fireLiftMaximumHeight = ParseFloat(Find(values, "firelift.fmaximumheight"), loaded.fireLiftMaximumHeight, 10.0f, 3000.0f);
+        loaded.fireLiftVerticalImpulse = ParseFloat(Find(values, "firelift.fverticalimpulse"), loaded.fireLiftVerticalImpulse, 0.0f, 10000.0f);
+        loaded.fireLiftImpulseDuration = ParseFloat(Find(values, "firelift.fimpulseduration"), loaded.fireLiftImpulseDuration, 0.05f, 5.0f);
+        loaded.fireLiftScanInterval = ParseFloat(Find(values, "firelift.fscaninterval"), loaded.fireLiftScanInterval, 0.02f, 1.0f);
         loaded.visualHeight = ParseFloat(Find(values, "visual.fvisualheight"), loaded.visualHeight, -500.0f, 500.0f);
         loaded.visualForward = ParseFloat(Find(values, "visual.fvisualforward"), loaded.visualForward, -500.0f, 500.0f);
         loaded.visualScale = ParseFloat(Find(values, "visual.fvisualscale"), loaded.visualScale, 0.01f, 50.0f);
@@ -168,6 +179,21 @@ namespace ParagliderVR
             _settings.visualRotationDegrees.x,
             _settings.visualRotationDegrees.y,
             _settings.visualRotationDegrees.z);
+        logger::info(
+            "Fire lift config enabled={} horizontalRadius={:.1f} maximumHeight={:.1f} verticalImpulse={:.1f} impulseDuration={:.2f} scanInterval={:.2f}",
+            _settings.fireLiftEnabled,
+            _settings.fireLiftHorizontalRadius,
+            _settings.fireLiftMaximumHeight,
+            _settings.fireLiftVerticalImpulse,
+            _settings.fireLiftImpulseDuration,
+            _settings.fireLiftScanInterval);
+        logger::info(
+            "Gesture control enabled={} positionTolerance={:.1f} rotationTolerance={:.1f} minimumConfidence={:.2f} transitionSpeed={:.1f}",
+            _settings.gestureControlEnabled,
+            _settings.gesturePositionTolerance,
+            _settings.gestureRotationToleranceDegrees,
+            _settings.gestureMinimumConfidence,
+            _settings.gestureTransitionSpeed);
         logger::info(
             "Wind visual config enabled={} model='{}' height={:.1f} forward={:.1f} scale={:.2f} rotation=({:.1f},{:.1f},{:.1f})",
             _settings.windVisualEnabled,

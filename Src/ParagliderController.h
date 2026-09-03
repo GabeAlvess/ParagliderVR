@@ -2,6 +2,7 @@
 
 #include "FlightDynamics.h"
 #include "FlightControl.h"
+#include "FireLiftController.h"
 #include "FlightSession.h"
 #include "FlightSafety.h"
 #include "ParagliderActivation.h"
@@ -30,6 +31,7 @@ namespace ParagliderVR
         mutable std::mutex _flightLock;
         FlightCommand _flight{};
         FlightControl _flightControl;
+        FireLiftController _fireLift;
         FlightSession _flightSession;
         FlightSafety _flightSafety;
         ParagliderActivation _activation;

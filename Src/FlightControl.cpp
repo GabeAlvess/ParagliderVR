@@ -40,6 +40,7 @@ namespace ParagliderVR
 
     void FlightControl::Begin(RE::PlayerCharacter* a_player, const Settings& a_settings)
     {
+        _gestureControl.Reset();
         float initialHorizontalSpeed = a_settings.minimumForwardSpeed;
         if (a_player) {
             if (auto* controller = a_player->GetCharController()) {
@@ -62,6 +63,7 @@ namespace ParagliderVR
     void FlightControl::Reset()
     {
         _commandedHorizontalSpeed = 0.0f;
+        _gestureControl.Reset();
     }
 
     FlightControlSample FlightControl::BuildCommand(
@@ -73,15 +75,38 @@ namespace ParagliderVR
         const Settings& a_settings)
     {
         FlightControlSample sample{};
-        sample.dominantThrottle = ApplyDeadzone(
+        const float thumbstickDominantThrottle = ApplyDeadzone(
             a_input.mainThumbstick.y,
             a_settings.thumbstickDeadzone);
-        sample.offhandThrottle = ApplyDeadzone(
+        const float thumbstickOffhandThrottle = ApplyDeadzone(
             a_input.offThumbstick.y,
             a_settings.thumbstickDeadzone);
-        sample.lateralThrottle = ApplyDeadzone(
+        const float thumbstickLateralThrottle = ApplyDeadzone(
             a_input.offThumbstick.x,
             a_settings.thumbstickDeadzone);
+        const auto gesture = _gestureControl.Update(
+            a_hmd,
+            a_input,
+            a_dualHanded,
+            a_delta,
+            a_settings);
+        sample.gestureVerticalThrottle = gesture.verticalThrottle;
+        sample.gestureHorizontalThrottle = gesture.horizontalThrottle;
+        sample.gestureLateralThrottle = gesture.lateralThrottle;
+        sample.gestureConfidence = gesture.confidence;
+        sample.gestureIndex = gesture.gestureIndex;
+        sample.dominantThrottle = std::clamp(
+            thumbstickDominantThrottle + gesture.verticalThrottle,
+            -1.0f,
+            1.0f);
+        sample.offhandThrottle = std::clamp(
+            thumbstickOffhandThrottle + gesture.horizontalThrottle,
+            -1.0f,
+            1.0f);
+        sample.lateralThrottle = std::clamp(
+            thumbstickLateralThrottle + gesture.lateralThrottle,
+            -1.0f,
+            1.0f);
 
         if (sample.offhandThrottle > 0.0f) {
             _commandedHorizontalSpeed +=

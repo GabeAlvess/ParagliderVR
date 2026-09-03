@@ -31,6 +31,7 @@ namespace ParagliderVR
         }
         const auto& settings = Config::GetSingleton().Get();
         _flightControl.Begin(RE::PlayerCharacter::GetSingleton(), settings);
+        _fireLift.Reset();
         _flightSafety.Reset();
         {
             std::scoped_lock lock(_flightLock);
@@ -56,6 +57,7 @@ namespace ParagliderVR
             _flightSafety.Reset();
             _gestureLogTimer = 0.0f;
             _flightControl.Reset();
+            _fireLift.Reset();
         }
         _flightSession.Stop(wasActive, a_reason);
     }
@@ -120,6 +122,7 @@ namespace ParagliderVR
         if (safety.status == FlightSafetyStatus::kWaitForHands) {
             return;
         }
+        _fireLift.Update(a_player, a_delta, settings);
         const bool staminaExhausted = _flightSession.Update(a_player, a_delta, settings);
 
         const auto control = _flightControl.BuildCommand(
@@ -141,13 +144,18 @@ namespace ParagliderVR
         if (_gestureLogTimer >= 0.50f) {
             _gestureLogTimer = 0.0f;
             logger::info(
-                "Control sample grips={} heldHands={} exhausted={} dominantY={:.2f} offhand=({:.2f},{:.2f}) verticalThrottle={:.2f} horizontalThrottle={:.2f} lateralThrottle={:.2f} commandedSpeed={:.1f} effectiveSpeed={:.1f} lateralSpeed={:.1f} verticalTarget={:.1f}",
+                "Control sample grips={} heldHands={} exhausted={} dominantY={:.2f} offhand=({:.2f},{:.2f}) gesture={} confidence={:.2f} gestureAxes=({:.2f},{:.2f},{:.2f}) verticalThrottle={:.2f} horizontalThrottle={:.2f} lateralThrottle={:.2f} commandedSpeed={:.1f} effectiveSpeed={:.1f} lateralSpeed={:.1f} verticalTarget={:.1f}",
                 safety.gripCount,
                 safety.heldHandCount,
                 staminaExhausted,
                 a_input.mainThumbstick.y,
                 a_input.offThumbstick.x,
                 a_input.offThumbstick.y,
+                control.gestureIndex,
+                control.gestureConfidence,
+                control.gestureVerticalThrottle,
+                control.gestureHorizontalThrottle,
+                control.gestureLateralThrottle,
                 control.dominantThrottle,
                 control.offhandThrottle,
                 control.lateralThrottle,

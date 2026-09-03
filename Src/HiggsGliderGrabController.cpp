@@ -24,6 +24,10 @@ namespace ParagliderVR
                 _higgsInterface->AddGrabbedCallback(OnHiggsGrabbed);
                 _higgsGrabbedCallbackRegistered = true;
             }
+            if (!_higgsDroppedCallbackRegistered) {
+                _higgsInterface->AddDroppedCallback(OnHiggsDropped);
+                _higgsDroppedCallbackRegistered = true;
+            }
             logger::info("HIGGS interface ready build={}", _higgsInterface->GetBuildNumber());
         } else {
             logger::warn("HIGGS interface unavailable; physical two-hand spawning is disabled");
@@ -76,6 +80,8 @@ namespace ParagliderVR
         _restoreLeftAfterForcedRelease = false;
         _restoreRightAfterForcedRelease = false;
         _initialGrabComplete = false;
+        _calibrationLeftHeld = false;
+        _calibrationRightHeld = false;
         _wasHeldByBothHands = false;
         _grabPhase = a_reference ? GrabPhase::kSettling : GrabPhase::kNone;
         _grabRetryTimer = 0.0f;
@@ -97,6 +103,8 @@ namespace ParagliderVR
         _restoreLeftAfterForcedRelease = false;
         _restoreRightAfterForcedRelease = false;
         _initialGrabComplete = false;
+        _calibrationLeftHeld = false;
+        _calibrationRightHeld = false;
         _wasHeldByBothHands = false;
         _grabPhase = GrabPhase::kNone;
         _grabRetryTimer = 0.0f;
@@ -137,12 +145,17 @@ namespace ParagliderVR
             return false;
         }
         _forcedReleasePending = false;
+        _calibrationLeftHeld = false;
+        _calibrationRightHeld = false;
         logger::info("Forced HIGGS release completed");
         return true;
     }
 
     bool HiggsGliderGrabController::IsHeldByHand(bool a_isLeft) const
     {
+        if (Config::GetSingleton().Get().calibrationMode) {
+            return a_isLeft ? _calibrationLeftHeld.load() : _calibrationRightHeld.load();
+        }
         return _higgsInterface && _reference &&
             _higgsInterface->GetGrabbedObject(a_isLeft) == _reference;
     }
@@ -183,12 +196,24 @@ namespace ParagliderVR
         }
     }
 
+    void HiggsGliderGrabController::OnHiggsDropped(bool a_isLeft, RE::TESObjectREFR* a_reference)
+    {
+        if (activeInstance_) {
+            activeInstance_->HandleHiggsDropped(a_isLeft, a_reference);
+        }
+    }
+
     void HiggsGliderGrabController::HandleHiggsGrabbed(bool a_isLeft, RE::TESObjectREFR* a_reference)
     {
         if (!_higgsInterface || !_reference || a_reference != _reference) {
             return;
         }
         if (Config::GetSingleton().Get().calibrationMode) {
+            if (a_isLeft) {
+                _calibrationLeftHeld = true;
+            } else {
+                _calibrationRightHeld = true;
+            }
             logger::info(
                 "Calibration retained natural HIGGS grab for {} hand without applying a fixed transform",
                 a_isLeft ? "left" : "right");
@@ -197,6 +222,24 @@ namespace ParagliderVR
         _higgsInterface->SetGrabTransform(a_isLeft, CalibratedHandToGlider(a_isLeft));
         logger::info(
             "HIGGS grabbed callback immediately aligned {} hand",
+            a_isLeft ? "left" : "right");
+    }
+
+    void HiggsGliderGrabController::HandleHiggsDropped(
+        bool a_isLeft,
+        RE::TESObjectREFR* a_reference)
+    {
+        if (!_reference || a_reference != _reference ||
+            !Config::GetSingleton().Get().calibrationMode) {
+            return;
+        }
+        if (a_isLeft) {
+            _calibrationLeftHeld = false;
+        } else {
+            _calibrationRightHeld = false;
+        }
+        logger::info(
+            "Calibration observed HIGGS release for {} hand",
             a_isLeft ? "left" : "right");
     }
 

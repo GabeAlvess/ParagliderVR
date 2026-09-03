@@ -6,6 +6,7 @@ namespace ParagliderVR
     {
         bool gripDown = false;
         bool gripPressed = false;
+        RE::NiTransform worldTransform{};
         RE::NiPoint3 position{};
         RE::NiPoint3 forward{};
         bool valid = false;

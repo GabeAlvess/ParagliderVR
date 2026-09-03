@@ -62,6 +62,7 @@ namespace ParagliderVR
             auto* node = nodes[index];
             hand.valid = node != nullptr;
             if (node) {
+                hand.worldTransform = node->world;
                 hand.position = node->world.translate;
                 hand.forward = ControllerForward(*node);
             }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FlightDynamics.h"
+#include "GestureFlightControl.h"
 #include "ParagliderInput.h"
 
 namespace ParagliderVR
@@ -13,6 +14,11 @@ namespace ParagliderVR
         float dominantThrottle = 0.0f;
         float offhandThrottle = 0.0f;
         float lateralThrottle = 0.0f;
+        float gestureVerticalThrottle = 0.0f;
+        float gestureHorizontalThrottle = 0.0f;
+        float gestureLateralThrottle = 0.0f;
+        float gestureConfidence = 0.0f;
+        int gestureIndex = -1;
         float commandedHorizontalSpeed = 0.0f;
     };
 
@@ -32,5 +38,6 @@ namespace ParagliderVR
 
     private:
         float _commandedHorizontalSpeed = 0.0f;
+        GestureFlightControl _gestureControl;
     };
 }
