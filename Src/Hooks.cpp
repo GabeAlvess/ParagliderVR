@@ -26,7 +26,7 @@ namespace ParagliderVR
         if (auto* timer = RE::BSTimer::GetSingleton(); timer && timer->delta > 0.0f) {
             delta = (std::min)(timer->delta, 0.05f);
         }
-        ParagliderBallisticController::GetSingleton().Update(delta, paraglider.IsFlightActive());
+        ParagliderBallisticController::GetSingleton().Update(delta, paraglider.GetFlightCommand());
     }
 
     void Hooks::HookSetVelocity(RE::bhkCharacterController* a_controller, RE::hkVector4& a_velocity)
@@ -51,7 +51,8 @@ namespace ParagliderVR
             _setVelocity(a_controller, a_velocity);
             return;
         }
-        const auto delta = ParagliderController::GetSingleton().BuildVelocityDelta(baseVelocity);
+        const auto command = ParagliderController::GetSingleton().GetFlightCommand();
+        const auto delta = CalculateVelocityDelta(command, baseVelocity);
         RE::hkVector4 finalVelocity(
             a_velocity.quad.m128_f32[0] + (delta.x * worldScale),
             a_velocity.quad.m128_f32[1] + (delta.y * worldScale),

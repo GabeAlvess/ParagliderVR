@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "ParagliderBallisticController.h"
-#include "ParagliderController.h"
 
 namespace ParagliderVR
 {
@@ -135,7 +134,9 @@ namespace ParagliderVR
         return true;
     }
 
-    void ParagliderBallisticController::Update(float a_deltaTime, bool a_gliderActive)
+    void ParagliderBallisticController::Update(
+        float a_deltaTime,
+        const FlightCommand& a_flightCommand)
     {
         auto* player = RE::PlayerCharacter::GetSingleton();
         auto* controller = player ? player->GetCharController() : nullptr;
@@ -221,13 +222,13 @@ namespace ParagliderVR
         RE::hkVector4 velocity;
         controller->GetLinearVelocityImpl(velocity);
         velocity.quad.m128_f32[2] -= _gravity * a_deltaTime * worldScale;
-        if (a_gliderActive) {
+        if (a_flightCommand.active) {
             const RE::NiPoint3 baseVelocity{
                 velocity.quad.m128_f32[0] / worldScale,
                 velocity.quad.m128_f32[1] / worldScale,
                 velocity.quad.m128_f32[2] / worldScale
             };
-            const auto contribution = ParagliderController::GetSingleton().BuildVelocityDelta(baseVelocity);
+            const auto contribution = CalculateVelocityDelta(a_flightCommand, baseVelocity);
             velocity.quad.m128_f32[0] += contribution.x * worldScale;
             velocity.quad.m128_f32[1] += contribution.y * worldScale;
             velocity.quad.m128_f32[2] += contribution.z * worldScale;
@@ -246,7 +247,7 @@ namespace ParagliderVR
             _logTimer = 0.0f;
             logger::info(
                 "Ballistic sample glider={} state={} want={} support={} fallTime={:.3f} fallStart={:.1f} velocity=({:.1f},{:.1f},{:.1f})",
-                a_gliderActive,
+                a_flightCommand.active,
                 static_cast<std::uint32_t>(controller->context.currentState),
                 static_cast<std::uint32_t>(controller->wantState),
                 controller->supportBody.get() != nullptr,

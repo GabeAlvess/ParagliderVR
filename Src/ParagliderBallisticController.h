@@ -1,5 +1,7 @@
 #pragma once
 
+#include "FlightDynamics.h"
+
 namespace ParagliderVR
 {
     class ParagliderBallisticController final
@@ -8,7 +10,7 @@ namespace ParagliderVR
         static ParagliderBallisticController& GetSingleton();
 
         bool BeginGlideFlight();
-        void Update(float a_deltaTime, bool a_gliderActive);
+        void Update(float a_deltaTime, const FlightCommand& a_flightCommand);
         void Abort();
         [[nodiscard]] bool IsInFlight() const noexcept;
         [[nodiscard]] bool IsApplyingVelocityUpdate() const noexcept;

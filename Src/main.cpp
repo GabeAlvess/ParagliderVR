@@ -3,6 +3,7 @@
 #include "Config.h"
 #include "Hooks.h"
 #include "ParagliderController.h"
+#include "ParagliderInput.h"
 #include "PhysicalParagliderController.h"
 
 namespace
@@ -31,7 +32,7 @@ namespace
         if (!g_installed) {
             SKSE::AllocTrampoline(32);
             ParagliderVR::Hooks::Install();
-            controller.InstallInput();
+            ParagliderVR::ParagliderInput::GetSingleton().Install();
             g_installed = true;
         }
         controller.SetEnabled(true);

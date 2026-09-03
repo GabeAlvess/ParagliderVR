@@ -41,7 +41,7 @@ namespace HiggsPluginAPI
         virtual void AddStartTwoHandingCallback(StartTwoHandingCallback a_callback) = 0;
         using StopTwoHandingCallback = void (*)();
         virtual void AddStopTwoHandingCallback(StopTwoHandingCallback a_callback) = 0;
-        virtual bool CanGrabObject(RE::TESObjectREFR* a_object, bool a_isLeft) = 0;
+        virtual bool CanGrabObject(bool a_isLeft) = 0;
 
         enum class CollisionFilterComparisonResult : std::uint8_t
         {
