@@ -1,0 +1,9 @@
+* text=auto
+
+*.nif binary
+*.dds binary
+*.hkx binary
+*.wav binary
+*.blend binary
+*.esp binary
+*.png binary
