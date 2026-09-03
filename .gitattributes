@@ -3,7 +3,7 @@
 *.nif binary
 *.dds binary
 *.hkx binary
-*.wav binary
-*.blend binary
+*.wav filter=lfs diff=lfs merge=lfs -text
+*.blend filter=lfs diff=lfs merge=lfs -text
 *.esp binary
 *.png binary
