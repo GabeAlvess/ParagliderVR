@@ -1,0 +1,25 @@
+{
+  "name": "Paraglider Left",
+  "description": "ParagliderVR lower-body-only animation; VRIK retains the upper body.",
+  "priority": 990003,
+  "conditions": [
+    {
+      "condition": "IsActorBase",
+      "requiredVersion": "1.0.0.0",
+      "Actor base": {
+        "pluginName": "Skyrim.esm",
+        "formID": "7"
+      }
+    },
+    {
+      "condition": "ParagliderVRIsActive",
+      "requiredPlugin": "ParagliderVR",
+      "requiredVersion": "0.2.0.0"
+    },
+    {
+      "condition": "ParagliderVRIsLeft",
+      "requiredPlugin": "ParagliderVR",
+      "requiredVersion": "0.2.0.0"
+    }
+  ]
+}
