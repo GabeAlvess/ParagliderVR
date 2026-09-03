@@ -168,13 +168,34 @@ namespace ParagliderVR
 
     void PhysicalParagliderController::DestroyPhysicalReference()
     {
-        _higgsGrab.Cancel();
         if (_physicalReference) {
             logger::info("Removing physical paraglider ref={:08X}", _physicalReference->formID);
             _physicalReference->Disable();
             _physicalReference->SetDelete(true);
             _physicalReference.reset();
         }
+        _higgsGrab.Cancel();
+        _destroyPending = false;
+    }
+
+    void PhysicalParagliderController::RequestPhysicalReferenceDestroy()
+    {
+        if (!_physicalReference) {
+            _destroyPending = false;
+            _higgsGrab.Cancel();
+            return;
+        }
+        if (_higgsGrab.IsHeldByEitherHand()) {
+            if (!_destroyPending) {
+                logger::info(
+                    "Forcing HIGGS release before physical paraglider removal ref={:08X}",
+                    _physicalReference->formID);
+            }
+            _destroyPending = true;
+            _higgsGrab.ForceReleaseReference();
+            return;
+        }
+        DestroyPhysicalReference();
     }
 
     void PhysicalParagliderController::Deploy(RE::PlayerCharacter& a_player)
@@ -188,7 +209,7 @@ namespace ParagliderVR
 
     void PhysicalParagliderController::Retract()
     {
-        DestroyPhysicalReference();
+        RequestPhysicalReferenceDestroy();
     }
 
     void PhysicalParagliderController::Update(
@@ -197,6 +218,13 @@ namespace ParagliderVR
         const ParagliderInputState& a_input)
     {
         if (!_enabled) {
+            return;
+        }
+        if (_destroyPending) {
+            if (_higgsGrab.UpdateForcedRelease()) {
+                logger::info("HIGGS force-release completed; removing physical paraglider");
+                DestroyPhysicalReference();
+            }
             return;
         }
         _equipment.Refresh(a_player, a_delta);
@@ -240,6 +268,16 @@ namespace ParagliderVR
 
     void PhysicalParagliderController::Reset()
     {
+        if (_physicalReference && _higgsGrab.IsHeldByEitherHand()) {
+            logger::warn(
+                "Reset abandoned held physical paraglider without Disable ref={:08X}",
+                _physicalReference->formID);
+            _physicalReference->SetDelete(true);
+            _physicalReference.reset();
+            _destroyPending = false;
+            _higgsGrab.Cancel();
+            return;
+        }
         DestroyPhysicalReference();
     }
 }

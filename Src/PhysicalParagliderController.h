@@ -34,10 +34,12 @@ namespace ParagliderVR
     private:
         void SpawnPhysicalReference(RE::PlayerCharacter& a_player);
         void DestroyPhysicalReference();
+        void RequestPhysicalReferenceDestroy();
         void DisableAutomaticGrabNodes() const;
         PhysicalGliderEquipment _equipment;
         HiggsGliderGrabController _higgsGrab;
         RE::NiPointer<RE::TESObjectREFR> _physicalReference;
+        bool _destroyPending = false;
         bool _enabled = false;
     };
 }

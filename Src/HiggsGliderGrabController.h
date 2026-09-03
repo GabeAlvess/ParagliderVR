@@ -15,6 +15,8 @@ namespace ParagliderVR
         void RestoreHandsAfterSpawn();
         void SetReference(RE::TESObjectREFR* a_reference);
         void Cancel();
+        void ForceReleaseReference();
+        [[nodiscard]] bool UpdateForcedRelease();
         void UpdateAlignment(float a_delta, bool a_leftGripDown, bool a_rightGripDown);
         void EnableCalibrationGrabbing();
 
@@ -53,6 +55,9 @@ namespace ParagliderVR
         bool _restoreLeftHiggsHand = false;
         bool _restoreRightHiggsHand = false;
         bool _higgsGrabbedCallbackRegistered = false;
+        bool _forcedReleasePending = false;
+        bool _restoreLeftAfterForcedRelease = false;
+        bool _restoreRightAfterForcedRelease = false;
         bool _wasHeldByBothHands = false;
         float _grabRetryTimer = 0.0f;
     };

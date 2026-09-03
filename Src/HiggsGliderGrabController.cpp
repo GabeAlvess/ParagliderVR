@@ -72,6 +72,9 @@ namespace ParagliderVR
     void HiggsGliderGrabController::SetReference(RE::TESObjectREFR* a_reference)
     {
         _reference = a_reference;
+        _forcedReleasePending = false;
+        _restoreLeftAfterForcedRelease = false;
+        _restoreRightAfterForcedRelease = false;
         _initialGrabComplete = false;
         _wasHeldByBothHands = false;
         _grabPhase = a_reference ? GrabPhase::kSettling : GrabPhase::kNone;
@@ -81,11 +84,61 @@ namespace ParagliderVR
     void HiggsGliderGrabController::Cancel()
     {
         RestoreHandsAfterSpawn();
+        if (_higgsInterface) {
+            if (_restoreLeftAfterForcedRelease) {
+                _higgsInterface->EnableHand(true);
+            }
+            if (_restoreRightAfterForcedRelease) {
+                _higgsInterface->EnableHand(false);
+            }
+        }
         _reference = nullptr;
+        _forcedReleasePending = false;
+        _restoreLeftAfterForcedRelease = false;
+        _restoreRightAfterForcedRelease = false;
         _initialGrabComplete = false;
         _wasHeldByBothHands = false;
         _grabPhase = GrabPhase::kNone;
         _grabRetryTimer = 0.0f;
+    }
+
+    void HiggsGliderGrabController::ForceReleaseReference()
+    {
+        if (!_higgsInterface || !_reference || _forcedReleasePending) {
+            return;
+        }
+        const bool leftHeld = _higgsInterface->GetGrabbedObject(true) == _reference;
+        const bool rightHeld = _higgsInterface->GetGrabbedObject(false) == _reference;
+        if (leftHeld && !_higgsInterface->IsDisabled(true)) {
+            _higgsInterface->DisableHand(true);
+            _restoreLeftAfterForcedRelease = true;
+        }
+        if (rightHeld && !_higgsInterface->IsDisabled(false)) {
+            _higgsInterface->DisableHand(false);
+            _restoreRightAfterForcedRelease = true;
+        }
+        _forcedReleasePending = leftHeld || rightHeld;
+        if (_forcedReleasePending) {
+            logger::info(
+                "Forced HIGGS release requested leftHeld={} rightHeld={}",
+                leftHeld,
+                rightHeld);
+        }
+    }
+
+    bool HiggsGliderGrabController::UpdateForcedRelease()
+    {
+        if (!_forcedReleasePending || !_higgsInterface || !_reference) {
+            return true;
+        }
+        const bool leftHeld = _higgsInterface->GetGrabbedObject(true) == _reference;
+        const bool rightHeld = _higgsInterface->GetGrabbedObject(false) == _reference;
+        if (leftHeld || rightHeld) {
+            return false;
+        }
+        _forcedReleasePending = false;
+        logger::info("Forced HIGGS release completed");
+        return true;
     }
 
     bool HiggsGliderGrabController::IsHeldByHand(bool a_isLeft) const
